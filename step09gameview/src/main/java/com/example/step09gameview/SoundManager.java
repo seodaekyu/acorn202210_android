@@ -19,15 +19,23 @@ public class SoundManager {
     Context context;
     // 볼륨
     int streamVolume;
+    // 무음 모드인지 여부
+    boolean isMute = false;
 
     // 생성자
     public SoundManager(Context context){
+        // 만일 무음 모드이면 여기서 메소드 끝내기
+        if(isMute)return;
         this.context = context;
         pool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
         // 오디오 서비스 객체를 얻어와서
         AudioManager am = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
         // 설정된 음악 볼륨 값을 읽어와서 필드에 저장한다.
         streamVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+    // 무음인지 여부를 전달받는 메소드
+    public void setMute(boolean mute) {
+        isMute = mute;
     }
 
     // 재생할 사운드 등록하는 메소드
@@ -53,6 +61,7 @@ public class SoundManager {
         pool.pause(soundId);
     }
     public void resumeSound(int key){
+        if(isMute)return;
         pool.resume(map.get(key));
     }
     // 자원 해제 하는 메소드
