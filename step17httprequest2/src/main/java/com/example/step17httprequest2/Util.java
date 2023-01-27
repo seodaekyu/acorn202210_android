@@ -75,7 +75,7 @@ public class Util {
         private RequestListener listener;
 
         public void setListener(RequestListener listener) {
-            this.listener = listener;
+                this.listener = listener;
         }
 
         public void setRequestId(int requestId) {
