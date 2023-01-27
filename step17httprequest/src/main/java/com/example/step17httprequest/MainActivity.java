@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         editText = findViewById(R.id.editText);
 
         EditText inputUrl = findViewById(R.id.inputUrl);
+        // 요청 버튼을 클릭했을때 동작할 준비
         Button requestBtn = findViewById(R.id.requestBtn);
         requestBtn.setOnClickListener(v->{
             // 입력한 요청 url 을 읽어온다.
