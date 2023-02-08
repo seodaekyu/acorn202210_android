@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="1.7" />
+    <bytecodeTargetLevel target="1.7">
+      <module name="MyAndroid.step01activity" target="11" />
+      <module name="MyAndroid.step01activity2" target="11" />
+      <module name="MyAndroid.step02layout" target="11" />
+      <module name="MyAndroid.step03view" target="11" />
+      <module name="MyAndroid.step04activitymove" target="11" />
+      <module name="MyAndroid.step05example" target="11" />
+      <module name="MyAndroid.step05listview" target="11" />
+      <module name="MyAndroid.step06customadapter" target="11" />
+      <module name="MyAndroid.step07fragment" target="11" />
+      <module name="MyAndroid.step07fragment2" target="11" />
+      <module name="MyAndroid.step08viewbinding" target="11" />
+      <module name="MyAndroid.step09customview" target="11" />
+      <module name="MyAndroid.step09gameview" target="11" />
+      <module name="MyAndroid.step10viewpager" target="11" />
+      <module name="MyAndroid.step11bottomnavi" target="11" />
+      <module name="MyAndroid.step12broadcastreceiver" target="11" />
+      <module name="MyAndroid.step13sharedpref" target="11" />
+      <module name="MyAndroid.step14sqlite" target="11" />
+      <module name="MyAndroid.step15webview" target="11" />
+      <module name="MyAndroid.step15webview2" target="11" />
+      <module name="MyAndroid.step16asynctask" target="11" />
+      <module name="MyAndroid.step17example" target="11" />
+      <module name="MyAndroid.step17httprequest" target="11" />
+      <module name="MyAndroid.step17httprequest2" target="11" />
+      <module name="MyAndroid.step17httprequest3" target="11" />
+      <module name="MyAndroid.step18login" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
