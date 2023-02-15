@@ -12,5 +12,10 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:id="@+id/textView"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="알림 삭제하기"
+        android:id="@+id/cancelBtn"/>
 
 </LinearLayout>
