@@ -12,6 +12,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/kotlin_test" />
+            <option value="$PROJECT_DIR$/step17example" />
+            <option value="$PROJECT_DIR$/step18login" />
             <option value="$PROJECT_DIR$/step19callphone" />
             <option value="$PROJECT_DIR$/step20contentprovider" />
             <option value="$PROJECT_DIR$/step21notification" />

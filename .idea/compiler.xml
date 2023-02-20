@@ -23,11 +23,9 @@
       <module name="MyAndroid.step15webview" target="11" />
       <module name="MyAndroid.step15webview2" target="11" />
       <module name="MyAndroid.step16asynctask" target="11" />
-      <module name="MyAndroid.step17example" target="11" />
       <module name="MyAndroid.step17httprequest" target="11" />
       <module name="MyAndroid.step17httprequest2" target="11" />
       <module name="MyAndroid.step17httprequest3" target="11" />
-      <module name="MyAndroid.step18login" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
