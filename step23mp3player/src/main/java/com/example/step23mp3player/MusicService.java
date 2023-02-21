@@ -137,6 +137,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         playMusic();
         handler.removeMessages(0);
         handler.sendEmptyMessageDelayed(0, 100);
+
+        
     }
 
     @Override
