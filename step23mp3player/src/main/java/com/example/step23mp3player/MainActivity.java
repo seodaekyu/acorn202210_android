@@ -45,9 +45,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-public class MainActivity extends AppCompatActivity  implements AdapterView.OnItemClickListener {
-
+public class MainActivity extends AppCompatActivity  implements AdapterView.OnItemClickListener,
+        MusicService.OnMoveToListener{
     MediaPlayer mp;
     //재생 준비가 되었는지 여부
     boolean isPrepared=false;
@@ -55,7 +54,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
     ProgressBar progress;
     TextView time;
     SeekBar seek;
-
     //서비스의 참조값을 저장할 필드
     MusicService service;
     //서비스에 연결되었는지 여부
@@ -64,14 +62,13 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
     List<String> songs;
     //Adapter 의 참조값
     ArrayAdapter<String> adapter;
-
     SharedPreferences pref;
     String sessionId;
     String id;
-
-    // 음악재생 목록
-    List<MusicDto> musicList = new ArrayList<>();
-
+    //재생음악 목록
+    List<MusicDto> musicList=new ArrayList<>();
+    //ListView 의 참조값을 저장할 필드
+    ListView listView;
     //서비스 연결객체
     ServiceConnection sConn=new ServiceConnection() {
         //서비스에 연결이 되었을때 호출되는 메소드
@@ -83,6 +80,16 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             service=lBinder.getService();
             //연결되었다고 표시
             isConnected=true;
+            service.setMusicList(musicList);
+            //재생 위치가 다음곡으로 이동했을때 해당 이벤트를 감시할 리스너 등록
+            service.setOnMoveToListener(MainActivity.this);
+            //현재 재생 위치를 읽어와서
+            int currentIndex=service.getCurrentIndex();
+            listView.setItemChecked(currentIndex, true);
+            adapter.notifyDataSetChanged();
+            listView.smoothScrollToPosition(currentIndex);
+            loadTitleImage(currentIndex);
+
             //핸들러에 메세지 보내기
             handler.removeMessages(0); //만일 핸들러가 동작중에 있으면 메세지를 제거하고
             handler.sendEmptyMessageDelayed(0, 100); //다시 보내기
@@ -94,7 +101,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             isConnected=false;
         }
     };
-
     //UI 를 주기적으로 업데이트 하기 위한 Handler
     Handler handler=new Handler(){
         /*
@@ -105,7 +111,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
          */
         @Override
         public void handleMessage(@NonNull Message msg) {
-
             if(service.isPrepared()){
                 //전체 재생시간
                 int maxTime=service.getMp().getDuration();
@@ -123,12 +128,10 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                                 -TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS. toMinutes(currentTime)) );
                 time.setText(info);
             }
-
             //자신의 객체에 다시 빈 메세제를 보내서 handleMessage() 가 일정시간 이후에 호출 되도록 한다.
             handler.sendEmptyMessageDelayed(0, 100); // 1/10 초 이후에
         }
     };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +144,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         //ProgressBar 의 참조값 얻어오기
         progress=findViewById(R.id.progress);
         seek=findViewById(R.id.seek);
-
         //재생 버튼
         playBtn=findViewById(R.id.playBtn);
         //재생버튼을 눌렀을때
@@ -154,12 +156,21 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         pauseBtn.setOnClickListener(v->{
             service.pauseMusic();
         });
+        //뒤로 감기 버튼
+        ImageButton rewBtn=findViewById(R.id.rewBtn);
+        rewBtn.setOnClickListener(v->{
+            service.rewMusic();
+        });
+        //앞으로 감기 버튼
+        ImageButton ffBtn=findViewById(R.id.ffBtn);
+        ffBtn.setOnClickListener(v->{
+            service.ffMusic();
+        });
 
         //알림체널만들기
         createNotificationChannel();
-
         //ListView 관련 작업
-        ListView listView=findViewById(R.id.listView);
+        listView=findViewById(R.id.listView);
         //셈플 데이터
         songs=new ArrayList<>();
         //ListView 에 연결할 아답타
@@ -167,6 +178,7 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         listView.setAdapter(adapter);
         //ListView 에 아이템 클릭 리스너 등록
         listView.setOnItemClickListener(this);
+
     }
 
     @Override
@@ -174,19 +186,15 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         super.onStart();
         // MusicService 에 연결할 인텐트 객체
         Intent intent=new Intent(this, MusicService.class);
+        intent.setAction("Dummy Action");
         //서비스 시작 시키기
-        //startService(intent);
-        // 액티비티의 bindService() 메소드를 이용해서 연결한다.
-        // 만일 서비스가 시작이 되지 않았으면 서비스 객체를 생성해서
-        // 시작할 준비만 된 서비스에 바인딩이 된다.
-        bindService(intent, sConn, Context.BIND_AUTO_CREATE);
-
+        //이미 서비스가 동작 중이라면 onStartCommand() 메소드만 다시 호출된다.
+        startService(intent);
         pref= PreferenceManager.getDefaultSharedPreferences(this);
         sessionId=pref.getString("sessionId", "");
         //로그인 했는지 체크하기
         new LoginCheckTask().execute(AppConstants.BASE_URL+"/music/logincheck");
     }
-
     @Override
     protected void onStop() {
         super.onStop();
@@ -196,13 +204,11 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             isConnected=false;
         }
     }
-
     //앱의 사용자가 알림을 직접 관리 할수 있도록 알림 체널을 만들어야한다.
     public void createNotificationChannel(){
         //알림 체널을 지원하는 기기인지 확인해서
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //알림 체널을 만들기
-
             //셈플 데이터
             String name="Music Player";
             String text="Control";
@@ -216,11 +222,8 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             NotificationManager notiManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
             //알림 체널을 만든다.
             notiManager.createNotificationChannel(channel);
-
         }
-
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -228,7 +231,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             case 0:
                 //권한을 부여 했다면
                 if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
-
                 }else{//권한을 부여 하지 않았다면
                     Toast.makeText(this, "알림을 띄울 권한이 필요합니다.",
                             Toast.LENGTH_SHORT).show();
@@ -240,32 +242,47 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // position 은 클릭한 셀의 인덱스
-        String fileName = musicList.get(position).getSaveFileName();
-        service.initMusic(AppConstants.MUSIC_URL+fileName);
+        service.initMusic(position);
+        loadTitleImage(position);
+    }
 
-        // mp3 파일의 title 이미지를 얻어내는 작업
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        // mp3 파일 로딩
+    //타이틀 이미지를 로딩하는 메소드
+    public void loadTitleImage(int index){
+        //mp3 파일의 title 이미지를 얻어내는 작업
+        MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+        String fileName=musicList.get(index).getSaveFileName();
+        //mp3 파일 로딩
         mmr.setDataSource(AppConstants.MUSIC_URL+fileName);
-        // 이미지 data 를 byte[] 로 얻어내서
-        byte[] imageData = mmr.getEmbeddedPicture();
-        // 만일 이미지 데이터가 있다면
+        //이미지 data 를 byte[] 로 얻어내서
+        byte[] imageData=mmr.getEmbeddedPicture();
+        //만일 이미지 데이터가 있다면
         if(imageData != null) {
             // byte[] 을 활용해서 Bitmap 이미지를 얻어내고
             Bitmap image = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
             // Bitmap 이미지를 출력할 ImageView
             ImageView imageView = findViewById(R.id.imageView);
             imageView.setImageBitmap(image);
-        }else {
-            // 기본 이미지를 출력한다든지 작업을 하면 된다.
-            
-        }
+        }else{
+            //기본 이미지를 출력한다든지 작업을 하면 된다.
 
+        }
+    }
+
+    //MusicService 클래스 안에 정의된 OnMoveToListener 인터페이스를 구현해서 강제 오버라이드한 메소드
+    @Override
+    public void moved(int index) {
+        //재생위치가 다음으로 이동했을때 호출되는 메소드로 만들 예정
+        //ListView 의 selection 을 index 로 이동 시킨다
+        listView.setItemChecked(index, true);
+        //해당 인덱스로 부드럽게 스크롤 되게 한다.
+        listView.smoothScrollToPosition(index);
+        adapter.notifyDataSetChanged();
+        //타이틀 이미지 바꾸기
+        loadTitleImage(index);
     }
 
     //로그인 여부를 체크하는 작업을 할 비동기 task
     class LoginCheckTask extends AsyncTask<String, Void, Boolean> {
-
         @Override
         protected Boolean doInBackground(String... strings) {
             //로그인 체크 url
@@ -290,10 +307,8 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                         // JSESSIONID=xxx 형식의 문자열을 쿠키로 보내기
                         conn.setRequestProperty("Cookie", sessionId);
                     }
-
                     //응답 코드를 읽어온다.
                     int responseCode=conn.getResponseCode();
-
                     if(responseCode==200){//정상 응답이라면...
                         //서버가 출력하는 문자열을 읽어오기 위한 객체
                         isr=new InputStreamReader(conn.getInputStream());
@@ -355,7 +370,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             //로그인 여부를 리턴하면 아래의 onPostExecute() 메소드에 전달된다.
             return isLogin;
         }
-
         @Override
         protected void onPostExecute(Boolean isLogin) {
             super.onPostExecute(isLogin);
@@ -364,8 +378,12 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             if(isLogin){
                 TextView infoText=findViewById(R.id.infoText);
                 infoText.setText(id+" 님 로그인중...");
-                // 재생목록 받아오기
+                //재생목록 받아오기
                 new MusicListTask().execute(AppConstants.BASE_URL+"/api/music/list");
+                // 액티비티의 bindService() 메소드를 이용해서 연결한다.
+                Intent intent=new Intent(MainActivity.this, MusicService.class);
+                intent.setAction("Dummy Action");
+                bindService(intent, sConn, Context.BIND_AUTO_CREATE);
             }else{
                 //로그인 액티비티로 이동
                 Intent intent=new Intent(MainActivity.this, LoginActivity.class);
@@ -373,10 +391,8 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             }
         }
     }
-
     //재생목록을 얻어올 작업을 할 비동기 task
     class MusicListTask extends AsyncTask<String, Void, String> {
-
         @Override
         protected String doInBackground(String... strings) {
             //요청 url
@@ -400,10 +416,8 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                         // JSESSIONID=xxx 형식의 문자열을 쿠키로 보내기
                         conn.setRequestProperty("Cookie", sessionId);
                     }
-
                     //응답 코드를 읽어온다.
                     int responseCode=conn.getResponseCode();
-
                     if(responseCode==200){//정상 응답이라면...
                         //서버가 출력하는 문자열을 읽어오기 위한 객체
                         isr=new InputStreamReader(conn.getInputStream());
@@ -439,7 +453,6 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                         }
                     }
                 }
-
             }catch(Exception e){//예외가 발생하면
                 Log.e("MusicListTask", e.getMessage());
             }finally {
@@ -452,52 +465,44 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             //응답받은 문자열을 리턴한다.
             return builder.toString();
         }
-
         @Override
         protected void onPostExecute(String jsonStr) {
             super.onPostExecute(jsonStr);
-            // 여기는 UI Thread
-            // jsonStr 은 [{}, {}, ...] 형식의 문자열이기때문에 JSONArray 객체를 생성한다.
+            //여기는 UI 스레드
+            // jsonStr 은 [{},{},...]  형식의 문자열이기 때문에 JSONArray 객체를 생성한다.
             songs.clear();
             musicList.clear();
-            try{
+            try {
                 JSONArray arr = new JSONArray(jsonStr);
-                for(int i=0; i<arr.length(); i++) {
+                for(int i=0; i<arr.length(); i++){
                     // i 번째 JSONObject 객체를 참조
-                    JSONObject tmp = arr.getJSONObject(i);
-                    int num = tmp.getInt("num");
-                    String writer = tmp.getString("writer");
-                    // "title" 이라는 키 값으로 저장된 문자열 읽어오기
-                    String title = tmp.getString("title");
-                    String artist = tmp.getString("artist");
-                    String orgFileName = tmp.getString("orgFileName");
-                    String saveFileName = tmp.getString("saveFileName");
-                    String regdate = tmp.getString("regdate");
-                    // ListView 에 연결된 모델에 곡의 제목을 담는다.
+                    JSONObject tmp=arr.getJSONObject(i);
+                    int num=tmp.getInt("num");
+                    String writer=tmp.getString("writer");
+                    // "title" 이라는 키값으로 저장된 문자열 읽어오기
+                    String title=tmp.getString("title");
+                    String artist=tmp.getString("artist");
+                    String orgFileName=tmp.getString("orgFileName");
+                    String saveFileName=tmp.getString("saveFileName");
+                    String regdate=tmp.getString("regdate");
+                    //ListView 에 연결된 모델에 곡의 제목을 담는다
                     songs.add(title);
-                    // 음악 하나의 자세한 정보를 MusicDto 에 담고
-                    MusicDto dto = new MusicDto();
+                    //음악하나의 자세한 정보를 MusicDto 에 담고
+                    MusicDto dto=new MusicDto();
                     dto.setNum(num);
+                    dto.setWriter(writer);
                     dto.setTitle(title);
                     dto.setArtist(artist);
                     dto.setOrgFileName(orgFileName);
                     dto.setSaveFileName(saveFileName);
                     dto.setRegdate(regdate);
-                    // MusicDto 를 List 에 누적 시킨다.
+                    //MusicDto 를 List 에 누적 시킨다.
                     musicList.add(dto);
                 }
                 adapter.notifyDataSetChanged();
-            }catch (JSONException je) {
-                Log.e("onPostExecute()", je.getMessage());
+            }catch (JSONException je){
+                Log.e("onPoseExecute()", je.getMessage());
             }
-
-
         }
     }
 }
-
-
-
-
-
-
