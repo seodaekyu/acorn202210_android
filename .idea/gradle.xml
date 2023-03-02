@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/step21notification" />
             <option value="$PROJECT_DIR$/step22service" />
             <option value="$PROJECT_DIR$/step23mp3player" />
+            <option value="$PROJECT_DIR$/step24fileio" />
           </set>
         </option>
       </GradleProjectSettings>
