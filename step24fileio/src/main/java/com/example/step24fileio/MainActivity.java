@@ -155,10 +155,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         File file = new File(absolutePath + "/memo.txt");
 
         try{
+            // 만일 2진 데이터라면
+            // FileOutputStream fos = new FileOutputStream(file);
             FileWriter fw = new FileWriter(file, true);
             fw.append(msg+"\n");
             fw.flush();
-            fw.close();
+            fw.close(); 
         }catch(Exception e) {
             Log.e("saveToExternal()", e.getMessage());
         }
