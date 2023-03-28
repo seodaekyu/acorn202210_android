@@ -21,6 +21,8 @@
             <option value="$PROJECT_DIR$/step23mp3player" />
             <option value="$PROJECT_DIR$/step24fileio" />
             <option value="$PROJECT_DIR$/step25imagecapture" />
+            <option value="$PROJECT_DIR$/step26listview" />
+            <option value="$PROJECT_DIR$/step26wear" />
           </set>
         </option>
       </GradleProjectSettings>

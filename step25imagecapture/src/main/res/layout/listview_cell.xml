@@ -20,18 +20,23 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:text="작성자: 김구라"
-            android:id="@+id/writer"/>
+            android:id="@+id/writer"
+            android:textStyle="bold"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
+            android:textSize="10sp"
             android:text="어쩌구 저쩌구..."
-            android:id="@+id/caption"/>
+            android:id="@+id/caption"
+            android:textStyle="italic"
+            android:maxLines="1"
+            android:ellipsize="end"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:text="2023.03.07 13:00"
-            android:id="@+id/regdate"/>
+            android:id="@+id/regdate"
+            android:textStyle="bold"/>
     </LinearLayout>
 </LinearLayout>
