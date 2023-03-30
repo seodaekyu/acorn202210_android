@@ -19,7 +19,6 @@
       <module name="MyAndroid.step11bottomnavi" target="11" />
       <module name="MyAndroid.step12broadcastreceiver" target="11" />
       <module name="MyAndroid.step13sharedpref" target="11" />
-      <module name="MyAndroid.step14sqlite" target="11" />
       <module name="MyAndroid.step15webview" target="11" />
       <module name="MyAndroid.step15webview2" target="11" />
       <module name="MyAndroid.step16asynctask" target="11" />

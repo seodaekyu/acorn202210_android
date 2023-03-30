@@ -12,6 +12,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/kotlin_test" />
+            <option value="$PROJECT_DIR$/myapp" />
+            <option value="$PROJECT_DIR$/step14sqlite" />
             <option value="$PROJECT_DIR$/step17example" />
             <option value="$PROJECT_DIR$/step18login" />
             <option value="$PROJECT_DIR$/step19callphone" />
@@ -22,6 +24,7 @@
             <option value="$PROJECT_DIR$/step24fileio" />
             <option value="$PROJECT_DIR$/step25imagecapture" />
             <option value="$PROJECT_DIR$/step26listview" />
+            <option value="$PROJECT_DIR$/step26listview2" />
             <option value="$PROJECT_DIR$/step26wear" />
           </set>
         </option>
